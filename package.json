@@ -1,0 +1,10 @@
+{
+  "name": "radio-vintage",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "node-fetch": "^2.6.0",
+    "onoff": "^5.0.0"
+  }
+}
