@@ -1,5 +1,5 @@
-
-const MOPIDY_URL = "http://192.168.1.55:6680"
+const fetch = require("node-fetch")
+const MOPIDY_URL = "http://127.0.0.1:6680"
 
 const mopidyCommand = {
   jsonrpc: "2.0",
@@ -41,6 +41,6 @@ const playStream = async url => {
   }
 };
 
-export default {
+module.exports = {
   playStream
 }

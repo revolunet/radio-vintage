@@ -1,6 +1,6 @@
 # Radio Vintage
 
-Recyclage d'une vieille radio en pour en faire un objet beau et utile : Une station de streaming audio.
+Recyclage d'une vieille radio en pour en faire une station de streaming audio vintage.
 
 Dans ce projet, l'electronique d'époque n'est pas du tout exploitée : uniquement les boutons physiques et le haut-parleur d'origine qui sont directement branchés sur un [RaspberryPI "headless"](https://raspberry-pi.fr/raspberry-pi-sans-ecran-sans-clavier/) sur lequel tourne un serveur [mopidy](https://mopidy.com/) et une application JavaScript qui permet de changer de playlist en fonction du bouton enfoncé.
 
@@ -37,7 +37,7 @@ Il faut déconnecter, nettoyer et recabler chaque bouton ou potentiomètre que l
 
 ![control-panel](./images/control-panel.jpg)
 
-Les boutons aurant une masse commune et l'autre pin sur un des ports GPIO du raspberry vont déclencher des "évènements" dans notre programme, lequel donnera des "ordres" au serveur mopidy qui gère la lecture du son.
+Sur ma radio, un seul bouton peut être enfoncé à la fois, donc tous ses boutons auront une masse commune et l'autre pin sur un des ports GPIO du raspberry. Le contact d'une masse+GPIO déclenchera des "évènements" dans notre programme, lequel donnera des "ordres" au serveur mopidy qui gère la lecture du son.
 
 Dans mon cas les 7 boutons sont branchés sur les GPIO : 17, 27, 22, 10, 9, 11, 5 et la masse commune sur un des Ground de la raspberryPI.
 
@@ -83,14 +83,8 @@ On pourra utiliser [pm2](https://pm2.keymetrics.io/) pour lancer ce script autom
 
 Voir le script complet : [./index.js](./index.js)
 
+> Pour utiliser "onoff" avec les boutons en GPIO en input en mode "PullUp", ajouter ceci dans /boot/config.txt : `gpio=5,9,10,11,13,15,17,19,21,22,23,27,29=pu`
 ## Tips
-
-###### update.sh :
-
-```sh
-#!/bin/sh
-scp index.js raspberry.local:/home/pi/radio-vintage/
-```
 
 ### DAC justboom
 
@@ -112,13 +106,37 @@ Le potentiomètre d'origine fait de 0 à 500k ohms ce qui est beaucoup trop pour
 
 Je n'ai pas encore trouvé de solution pour qu'il puisse gérer le volume...
 
+Pistes :
+
+ - réussir à faire un circuit qui permette de modifier la resistance du potentiomètre sans affecter sa course : aucune idée de comment faire ?
+ - convertir le signal analogique en digital avec un [MCP3008](https://learn.adafruit.com/mcp3008-spi-adc/python-circuitpython) et contrôler le volume via mopidy (plus lent).
+
 ### Development
 
 Avec JavaScript, pour itérer rapidement en testant sur le rpi, vous pouvez utiliser `pm2 start script.js --watch` qui recharge le programme des que vous le modifiez.
 
 Sur votre ordinateur de travail, créez un petit script pour envoyer les changements sur le rpi et la mise à jour sera directe.
 
+###### update.sh :
+
+```sh
+#!/bin/sh
+scp package.jon raspberry.local:/home/pi/radio-vintage/
+scp index.js raspberry.local:/home/pi/radio-vintage/
+scp mopidy.js raspberry.local:/home/pi/radio-vintage/
+```
+
 ## Ressources
 
- - [my rpi tips n tricks](https://gist.github.com/revolunet/f85a6fbe8b2688632c288f26010c9542)
+ - https://downloads.raspberrypi.org/raspbian_lite_latest
+ - https://docs.mopidy.com/en/latest/
+ - [Changing a Pot's Adjustment Range](http://musicfromouterspace.com/analogsynth_new/HOT_TIPS/coarserangeadjust.html)
+ - [JustBoom + RaspBian setup](https://www.justboom.co/software/configure-justboom-with-raspbian/)
+ - [my raspberry tips n tricks](https://gist.github.com/revolunet/f85a6fbe8b2688632c288f26010c9542)
+
+## Todo
+
+ - On/Off
+ - Potentiometer
+ - Leds RGB
 
