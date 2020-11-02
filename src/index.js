@@ -9,9 +9,27 @@ const { runLedsAnimation } = require("./leds");
 const ledsConfig = { leds: 21, gpio: 12, strip: "grb", brightness: 100 };
 
 let lastPin; // store last pushed button pin (to prevent duplicate plays)
-let lastPixels = new Uint32Array(ledsConfig.leds).fill("0xffffff"); // store last pixels config (so we can transition from them)
+let lastPixels = new Uint32Array(ledsConfig.leds).fill(0xfaae3c); // store last pixels config (so we can transition from them)
+const blackPixels = new Uint32Array(ledsConfig.leds).fill(0x000000);
 
 ws281x.configure(ledsConfig);
+
+const powerButton = new Gpio(26, "in", "both", {
+  debounceTimeout: 50,
+});
+
+powerButton.watch((err, value) => {
+  if (err) {
+    throw err;
+  }
+  if (value) {
+    // close leds
+    runLedsAnimation((x) => ws281x.render(x), lastPixels, blackPixels, 1500);
+  } else if (lastPixels) {
+    // restore leds
+    runLedsAnimation((x) => ws281x.render(x), blackPixels, lastPixels, 3000);
+  }
+});
 
 const radioButtons = buttons.map((mapping, idx) => {
   const button = new Gpio(mapping.pin, "in", "falling", {

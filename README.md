@@ -99,5 +99,4 @@ La distribution PiMusicBox est visiblement [peu active](https://github.com/pimus
 
 ## Todo
 
-- Meilleur on/off
 - Potentiometer

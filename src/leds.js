@@ -22,9 +22,8 @@ function easeInOutSine(x) {
 }
 
 // schedule the animation.render callbacks with expected pixels
-function runLedsAnimation(render, pixels1, pixels2) {
+function runLedsAnimation(render, pixels1, pixels2, duration = 1000) {
   const steps = generateSteps(pixels1, pixels2);
-  const duration = 1000;
   steps.forEach((pixels, i) => {
     const progression = easeInOutSine(i / steps.length);
     setTimeout(() => render(pixels), duration * progression);
