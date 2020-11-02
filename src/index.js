@@ -27,7 +27,7 @@ powerButton.watch((err, value) => {
     runLedsAnimation((x) => ws281x.render(x), lastPixels, blackPixels, 1500);
   } else if (lastPixels) {
     // restore leds
-    runLedsAnimation((x) => ws281x.render(x), blackPixels, lastPixels, 3000);
+    runLedsAnimation((x) => ws281x.render(x), blackPixels, lastPixels, 1500);
   }
 });
 
