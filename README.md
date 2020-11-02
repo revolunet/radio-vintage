@@ -1,53 +1,47 @@
 # Radio Vintage
 
-Recyclage d'une vieille radio en pour en faire une station de streaming audio vintage.
+Reconversion d'une radio vintage en station de streaming audio
 
-Dans ce projet, l'electronique d'époque n'est pas du tout exploitée : uniquement les boutons physiques et le haut-parleur d'origine qui sont directement branchés sur un [RaspberryPI "headless"](https://raspberry-pi.fr/raspberry-pi-sans-ecran-sans-clavier/) sur lequel tourne un serveur [mopidy](https://mopidy.com/) et une application JavaScript qui permet de changer de playlist en fonction du bouton enfoncé.
+![demo](./demo.gif)
 
-Pour améliorer la qualité du son d'origine vous pouvez ajouter un DAC (digital-analog converter) et/ou un ampli de chez [JustBoom](https://JustBoom.co) ou [HifiBerry](https://www.hifiberry.com/) par exemple.
+Dans ce projet, l'éléctronique d'époque n'est pas du tout exploitée : uniquement les boutons physiques et le haut-parleur d'origine qui sont directement branchés sur un [RaspberryPI "headless"](https://raspberry-pi.fr/raspberry-pi-sans-ecran-sans-clavier/) sur lequel tourne un serveur audio [mopidy](https://mopidy.com/) et une application JavaScript qui permet de changer de stream en fonction du bouton pressé.
 
-Il est également possible de transformer facilement sa radio en Client Spotify connect avec [raspotify](https://github.com/dtcooper/raspotify) ou avec [PiMusicBox](https://www.pimusicbox.com/).
-
-### Setup
+Pour améliorer la qualité de la sortie audio du raspberry qui par défaut n'est pas terrible, vous pouvez ajouter un DAC et/ou un ampli (ex: [JustBoom](https://JustBoom.co), [HifiBerry](https://www.hifiberry.com/)). J'ai opté pour un [micro ampli 3W MAX98357A](https://boutique.semageek.com/fr/810-amplificateur-i2s-3w-classe-d-max98357a.html) qui exploite le port I2S du Raspi pour fournir un audio de qualité suffisante pour ~8€ mais la puissance est un peu juste pour sonoriser une grande pièce.
 
 #### Frontend
 
 ![frontend](./images/frontend.jpg)
 
+Les 7 boutons poussoirs et le potentiomètre de gauche sont exploités.
+
 #### Backend
 
 ![backend](./images/backend.jpg)
 
+Le circuit d'origine n'est pas exploité.
+
 #### Montage avec la RaspberryPi
 
 ```
-        |----(+5V)---- éclairage radio (origine)
+        |----(+5V et GPIO)------- Bandeau LEDs ws2812
         |
-RaspberryPi----(gpio + gnd)---- 7 boutons       DAC
-        |                                        |
-        |----(audio)----|-----------|------------|-----> Speaker
-                        |           |
-                        |         Volume
-                        |
-                        |
-                   Bouton On/Off
+RaspberryPi----(gpio + gnd)---- 7 boutons
+        |
+        |----I2S----max98357a----speaker
+
 ```
 
 Il faut déconnecter, nettoyer et recabler chaque bouton ou potentiomètre que l'on veut exploiter.
 
 ![control-panel](./images/control-panel.jpg)
 
-Sur ma radio, un seul bouton peut être enfoncé à la fois, donc tous ses boutons auront une masse commune et l'autre pin sur un des ports GPIO du raspberry. Le contact d'une masse+GPIO déclenchera des "évènements" dans notre programme, lequel donnera des "ordres" au serveur mopidy qui gère la lecture du son.
+Sur ma radio, un seul bouton peut être enfoncé à la fois, donc tous ses boutons auront une masse commune et l'autre pin sur un des ports GPIO du raspberry. Le contact d'une masse+GPIO déclenchera des `événements` dans notre programme, lequel enverra des `ordres` au serveur mopidy qui gère la lecture du son via une API HTTP.
 
-Dans mon cas les 7 boutons sont branchés sur les GPIO : 17, 27, 22, 10, 9, 11, 5 et la masse commune sur un des Ground de la raspberryPI.
+Dans mon cas les 7 boutons sont branchés sur les GPIO : 17, 27, 22, 10, 9, 11, 5 et la masse commune sur un des GND de la raspberryPI.
 
-![rpi3-gpio](./images/rpi3-gpio.jpg)
+##### Audio et volume
 
-Pour l'audio, brancher la sortie du raspberry sur le Haut-Parleur. Le volume n'est pas assez fort/bon ? Ajouter un DAC et/ou un ampli au RaspberryPi.
-
-Je n'ai pas encore réussi à exploiter le double potentiomètre d'origine pour pouvoir régler le volume 😭
-
-![potentiometre.jpg](./images/potentiometre.jpg)
+⚠️ Une des difficultés (pour moi) est d'exploiter correctement le potentiomètre d'origine. Il n'a visiblement pas la bonne _impédance_? pour mon ampli du coup je n'exploite que 10% de sa course. Si vous avez des idées pour arranger cela sans changer le potentiomètre 🙏🙏🙏.
 
 #### Software
 
@@ -55,9 +49,7 @@ Le serveur [Mopidy](mopidy.com) propose de nombreux plugins, par exemple spotify
 
 (Une autre possibilité est d'utiliser VLC qui propose lui aussi une API http (minimale) qui permet de gérer une playlist.)
 
-La première étape est d'avoir le serveur mopidy fonctionnel.
-
-Ensuite il faudra adjoindre un script JavaScript (ou Python) qui va pouvoir gérer les boutons de la radio.
+Une fois le [serveur mopidy fonctionnel](https://docs.mopidy.com/en/latest/) et lancé automatiquement au démarrage, il faudra aussi lancer un script JavaScript (ou Python) qui va pouvoir gérer les boutons de la radio à votre guise.
 
 Avec le module [onoff](https://github.com/fivdi/onoff) c'est assez simple :
 
@@ -81,62 +73,31 @@ La fonction `playStream` déclenche la lecture d'un stream/fichier sur mopidy, e
 
 On pourra utiliser [pm2](https://pm2.keymetrics.io/) pour lancer ce script automatiquement au démarrage du RaspberryPi.
 
-Voir le script complet : [./index.js](./index.js)
+Voir le script complet : [./src/index.js](./src/index.js)
 
 > Pour utiliser "onoff" avec les boutons en GPIO en input en mode "PullUp", ajouter ceci dans /boot/config.txt : `gpio=5,9,10,11,13,15,17,19,21,22,23,27,29=pu`
-## Tips
 
-### DAC justboom
+### Streams
 
-Le [DAC Justboom](https://www.justboom.co/product/justboom-dac-hat/) occupe 100% du header de la raspberry mais il est possible de souder un autre header... se munir d'un header 40 pins à souder et d'un fer précis 😅 ([Merci Saint-Quentin radio](http://www.stquentin-radio.com/))
-
-#### Johnny-Five + i2s
-
-[johnny-five](http://johnny-five.io/) utilise [raspi-io](https://github.com/nebrius/raspi-io/issues/104) qui n'est apparemment pas compatible avec le DAC JustBoom 😢 (qui utilise i2s)
-
-Workaround : utiliser un script Python ou [onoff](https://github.com/fivdi/onoff) en JavaScript.
+cf [./src/buttons.js](./src/buttons.js)
 
 ### PiMusicBox
 
 La distribution PiMusicBox est visiblement [peu active](https://github.com/pimusicbox/pimusicbox/graphs/contributors) et il est difficile d'installer des packages récents sur cette base. Il vaut mieux partir sur la [dernière Raspbian Lite](https://downloads.raspberrypi.org/raspbian_lite_latest) et [installer mopidy et ses plugins directement](https://docs.mopidy.com/en/latest/installation/).
 
-### Potentiomètre
-
-Le potentiomètre d'origine fait de 0 à 500k ohms ce qui est beaucoup trop pour pouvoir gérer analogiquement le volume;
-
-Je n'ai pas encore trouvé de solution pour qu'il puisse gérer le volume...
-
-Pistes :
-
- - réussir à faire un circuit qui permette de modifier la resistance du potentiomètre sans affecter sa course : aucune idée de comment faire ?
- - convertir le signal analogique en digital avec un [MCP3008](https://learn.adafruit.com/mcp3008-spi-adc/python-circuitpython) et contrôler le volume via mopidy (plus lent).
-
-### Development
-
-Avec JavaScript, pour itérer rapidement en testant sur le rpi, vous pouvez utiliser `pm2 start script.js --watch` qui recharge le programme des que vous le modifiez.
-
-Sur votre ordinateur de travail, créez un petit script pour envoyer les changements sur le rpi et la mise à jour sera directe.
-
-###### update.sh :
-
-```sh
-#!/bin/sh
-scp package.jon raspberry.local:/home/pi/radio-vintage/
-scp index.js raspberry.local:/home/pi/radio-vintage/
-scp mopidy.js raspberry.local:/home/pi/radio-vintage/
-```
-
 ## Ressources
 
- - https://downloads.raspberrypi.org/raspbian_lite_latest
- - https://docs.mopidy.com/en/latest/
- - [Changing a Pot's Adjustment Range](http://musicfromouterspace.com/analogsynth_new/HOT_TIPS/coarserangeadjust.html)
- - [JustBoom + RaspBian setup](https://www.justboom.co/software/configure-justboom-with-raspbian/)
- - [my raspberry tips n tricks](https://gist.github.com/revolunet/f85a6fbe8b2688632c288f26010c9542)
+- https://downloads.raspberrypi.org/raspbian_lite_latest
+- https://docs.mopidy.com/en/latest/
+- [JustBoom + RaspBian setup](https://www.justboom.co/software/configure-justboom-with-raspbian/)
+
+## Related
+
+- [my raspberry tips n tricks](https://gist.github.com/revolunet/f85a6fbe8b2688632c288f26010c9542)
+- raspi as a spotify client with [raspotify](https://github.com/dtcooper/raspotify) or [PiMusicBox](https://www.pimusicbox.com/).
+- [Changing a Pot's Adjustment Range](http://musicfromouterspace.com/analogsynth_new/HOT_TIPS/coarserangeadjust.html)
 
 ## Todo
 
- - On/Off
- - Potentiometer
- - Leds RGB
-
+- Meilleur on/off
+- Potentiometer
