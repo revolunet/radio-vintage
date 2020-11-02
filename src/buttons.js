@@ -1,5 +1,5 @@
 // define colors and stream for the buttons
-export default [
+module.exports = [
   {
     pin: 17,
     colors: [
