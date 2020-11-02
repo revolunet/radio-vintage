@@ -4,7 +4,7 @@ Reconversion d'une radio vintage en station de streaming audio
 
 ![demo](./demo.gif)
 
-Dans ce projet, l'éléctronique d'époque n'est pas du tout exploitée : uniquement les boutons physiques et le haut-parleur d'origine qui sont directement branchés sur un [RaspberryPI "headless"](https://raspberry-pi.fr/raspberry-pi-sans-ecran-sans-clavier/) sur lequel tourne un serveur audio [mopidy](https://mopidy.com/) et une application JavaScript qui permet de changer de stream en fonction du bouton pressé.
+Dans ce projet, l'éléctronique d'époque n'est pas du tout exploitée : uniquement les boutons physiques et le haut-parleur d'origine qui sont directement branchés sur un [RaspberryPI "headless"](https://raspberry-pi.fr/raspberry-pi-sans-ecran-sans-clavier/) sur lequel tourne un serveur audio [mopidy](https://mopidy.com/) et une application JavaScript qui permet de changer de stream en fonction du bouton pressé. Un bandeau de LED ws2812 permet d'afficher les couleurs de la radio.
 
 Pour améliorer la qualité de la sortie audio du raspberry qui par défaut n'est pas terrible, vous pouvez ajouter un DAC et/ou un ampli (ex: [JustBoom](https://JustBoom.co), [HifiBerry](https://www.hifiberry.com/)). J'ai opté pour un [micro ampli 3W MAX98357A](https://boutique.semageek.com/fr/810-amplificateur-i2s-3w-classe-d-max98357a.html) qui exploite le port I2S du Raspi pour fournir un audio de qualité suffisante pour ~8€ mais la puissance est un peu juste pour sonoriser une grande pièce.
 
