@@ -6,11 +6,11 @@ const { playStream } = require("./mopidy");
 const buttons = require("./buttons");
 const { runLedsAnimation } = require("./leds");
 
-const ledsConfig = { leds: 21, gpio: 12, strip: "grb", brightness: 100 };
+const ledsConfig = { leds: 22, gpio: 12, strip: "grb", brightness: 100 };
 
 let lastPin; // store last pushed button pin (to prevent duplicate plays)
-let lastPixels = new Uint32Array(ledsConfig.leds).fill(0xfaae3c); // store last pixels config (so we can transition from them)
-const blackPixels = new Uint32Array(ledsConfig.leds).fill(0x000000);
+let lastPixels = new Uint32Array(ledsConfig.leds - 1).fill(0xfaae3c); // store last pixels config (so we can transition from them)
+const blackPixels = new Uint32Array(ledsConfig.leds - 1).fill(0x000000);
 
 ws281x.configure(ledsConfig);
 
@@ -24,12 +24,17 @@ powerButton.watch((err, value) => {
   }
   if (value) {
     // close leds
-    runLedsAnimation((x) => ws281x.render(x), lastPixels, blackPixels, 1500);
+    runLedsAnimation((x) => renderLeds(x), lastPixels, blackPixels, 1500);
   } else if (lastPixels) {
     // restore leds
-    runLedsAnimation((x) => ws281x.render(x), blackPixels, lastPixels, 1500);
+    runLedsAnimation((x) => renderLeds(x), blackPixels, lastPixels, 1500);
   }
 });
+
+const renderLeds = (pixels) => {
+  const pixels2 = new Uint32Array([...pixels, 0xff8b28]);
+  ws281x.render(pixels2);
+};
 
 const radioButtons = buttons.map((mapping, idx) => {
   const button = new Gpio(mapping.pin, "in", "falling", {
@@ -44,11 +49,11 @@ const radioButtons = buttons.map((mapping, idx) => {
       console.log(`Skip`);
     } else {
       if (mapping.color) {
-        const pixels = new Uint32Array(ledsConfig.leds).fill(mapping.color);
-        ws281x.render(pixels);
+        const pixels = new Uint32Array(ledsConfig.leds - 1).fill(mapping.color);
+        renderLeds(pixels);
       } else if (mapping.colors) {
         const pixels = new Uint32Array(mapping.colors);
-        runLedsAnimation((x) => ws281x.render(x), lastPixels, pixels);
+        runLedsAnimation((x) => renderLeds(x), lastPixels, pixels);
         lastPixels = pixels;
       }
       if (mapping.stream) {
