@@ -1,12 +1,13 @@
 const Gpio = require("onoff").Gpio;
 const fetch = require("node-fetch");
 const ws281x = require("rpi-ws281x");
+const color = require("color");
 
 const { playStream } = require("./mopidy");
 const buttons = require("./buttons");
 const { runLedsAnimation } = require("./leds");
 
-const ledsConfig = { leds: 22, gpio: 12, strip: "grb", brightness: 100 };
+const ledsConfig = { leds: 22, gpio: 12, strip: "grb", brightness: 255 };
 
 let lastPin; // store last pushed button pin (to prevent duplicate plays)
 let lastPixels = new Uint32Array(ledsConfig.leds - 1).fill(0xfaae3c); // store last pixels config (so we can transition from them)
@@ -24,15 +25,27 @@ powerButton.watch((err, value) => {
   }
   if (value) {
     // close leds
-    runLedsAnimation((x) => renderLeds(x), lastPixels, blackPixels, 1500);
+    runLedsAnimation(
+      (x) => renderLeds(x, 0x000000),
+      lastPixels,
+      blackPixels,
+      1500
+    );
   } else if (lastPixels) {
     // restore leds
     runLedsAnimation((x) => renderLeds(x), blackPixels, lastPixels, 1500);
   }
 });
 
-const renderLeds = (pixels) => {
-  const pixels2 = new Uint32Array([...pixels, 0xff8b28]);
+const renderLeds = (pixels, lastPixel = 0xff8b28) => {
+  const pixels2 = new Uint32Array([
+    ...pixels.map((p, i) =>
+      color(p)
+        .darken(Math.min(0.9, 0.7 + Math.abs(i - 10) * 0.02))
+        .rgbNumber()
+    ),
+    lastPixel,
+  ]);
   ws281x.render(pixels2);
 };
 
