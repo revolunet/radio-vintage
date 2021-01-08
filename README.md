@@ -96,6 +96,7 @@ La distribution PiMusicBox est visiblement [peu active](https://github.com/pimus
 - [my raspberry tips n tricks](https://gist.github.com/revolunet/f85a6fbe8b2688632c288f26010c9542)
 - raspi as a spotify client with [raspotify](https://github.com/dtcooper/raspotify) or [PiMusicBox](https://www.pimusicbox.com/).
 - [Changing a Pot's Adjustment Range](http://musicfromouterspace.com/analogsynth_new/HOT_TIPS/coarserangeadjust.html)
+- http://radiodan.net : A project to inspire new ideas for radio
 
 ## Todo
 
