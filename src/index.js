@@ -7,7 +7,7 @@ const { playStream } = require("./mopidy");
 const buttons = require("./buttons");
 const { runLedsAnimation } = require("./leds");
 
-const ledsConfig = { leds: 22, gpio: 12, strip: "grb", brightness: 255 };
+const ledsConfig = {leds: 22, gpio: 18, strip: "grb", brightness: 255 };
 
 let lastPin; // store last pushed button pin (to prevent duplicate plays)
 let lastPixels = new Uint32Array(ledsConfig.leds - 1).fill(0xfaae3c); // store last pixels config (so we can transition from them)
@@ -46,7 +46,7 @@ const renderLeds = (pixels, lastPixel = 0xff8b28) => {
     ),
     lastPixel,
   ]);
-  ws281x.render(pixels2);
+ ws281x.render(pixels2);
 };
 
 const radioButtons = buttons.map((mapping, idx) => {
